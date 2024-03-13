@@ -53,7 +53,7 @@ namespace Editor.SkyboxEditor.Scripts
             }
             catch
             {
-                Debug.Log("Scriptable object was not set up");
+                
             }
         }
 

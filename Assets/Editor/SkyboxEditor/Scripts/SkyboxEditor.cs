@@ -122,33 +122,8 @@ namespace Editor.SkyboxEditor.Scripts
 
             private void DrawAutoUpdateToggle()
             {
-                _autoUpdate = GUILayout.Toggle(_autoUpdate, "Auto-Update");
+                _autoUpdate = _manager.CurSkyboxEditorSo != null ? GUILayout.Toggle(_autoUpdate, "Auto-Update") : _autoUpdate = false;
                 if (_autoUpdate) EditorGUILayout.HelpBox("Enabling auto-update may impact performance", MessageType.Warning);
-            }
-
-            private void DrawSkyboxName()
-            {
-                GUILayout.BeginHorizontal();
-                GUILayout.Label("Skybox Name", GUILayout.Width(150));
-                GUI.enabled = false;
-                _skyboxName = GUILayout.TextField(_skyboxName);
-                GUI.enabled = true;
-
-                // bool shouldEnable = !File.Exists("Assets/Editor/SkyboxEditor/SO/" + _skyboxName + ".asset");
-                // GUI.enabled = shouldEnable;
-                // if (GUILayout.Button("new skybox", GUILayout.Width(100)))
-                // {
-                //     CreateNewSkybox();
-                // }
-                //
-                // GUI.enabled = true;
-                //
-                GUILayout.EndHorizontal();
-                //
-                // if (_skyboxName == "")
-                // {
-                //     EditorGUILayout.HelpBox("You must assign a name (ID) for the skybox", MessageType.Warning);
-                // }
             }
 
             private void DrawNewSkybox()
@@ -239,20 +214,26 @@ namespace Editor.SkyboxEditor.Scripts
             {
                 if (GUILayout.Button("Clear All Skyboxes"))
                 {
-                    List<string> folderPaths =  new List<string>();
-                    // folderPaths.Add("Assets/Editor/SkyboxEditor/Manager");
-                    folderPaths.Add("Assets/Editor/SkyboxEditor/Materials");
-                    folderPaths.Add("Assets/Editor/SkyboxEditor/SO");
-                    folderPaths.Add("Assets/Editor/SkyboxEditor/Textures");
+                    bool confirmed = EditorUtility.DisplayDialog("Confirmation", "Are you sure you want to clear all skyboxes?", "I probably shouldn't do this.", "Absolutely!");
 
-                    foreach (var s in folderPaths)
+                    if (!confirmed)
                     {
-                        DeleteAllFilesInFolder(s);
+                        List<string> folderPaths =  new List<string>();
+                        // folderPaths.Add("Assets/Editor/SkyboxEditor/Manager");
+                        folderPaths.Add("Assets/Editor/SkyboxEditor/Materials");
+                        folderPaths.Add("Assets/Editor/SkyboxEditor/SO");
+                        folderPaths.Add("Assets/Editor/SkyboxEditor/Textures");
+
+                        foreach (var s in folderPaths)
+                        {
+                            DeleteAllFilesInFolder(s);
+                        }
+                    
+                        AssetDatabase.Refresh();
+
+                        _manager.CurSkyboxEditorSo = null;
                     }
                     
-                    AssetDatabase.Refresh();
-
-                    _manager.CurSkyboxEditorSo = null;
                 }
             }
             
