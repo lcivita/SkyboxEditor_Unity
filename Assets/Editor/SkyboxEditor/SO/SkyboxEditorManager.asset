@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 09eae7d8da961b44da321b33ba9a0424, type: 3}
   m_Name: SkyboxEditorManager
   m_EditorClassIdentifier: 
-  gradient:
+  previewGradient:
     serializedVersion: 2
     key0: {r: 1, g: 1, b: 1, a: 1}
     key1: {r: 1, g: 1, b: 1, a: 1}
@@ -42,5 +42,8 @@ MonoBehaviour:
     m_ColorSpace: -1
     m_NumColorKeys: 2
     m_NumAlphaKeys: 2
-  textureHeight: 50
+  previewTextureHeight: 30
   previewFilterMode: 0
+  realTextureHeight: 100
+  realFilterMode: 1
+  autoUpdate: 0
