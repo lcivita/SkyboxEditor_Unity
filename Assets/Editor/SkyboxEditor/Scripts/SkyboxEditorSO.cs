@@ -1,7 +1,7 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "SkyboxEditorManager", menuName = "Editor/SkyboxEditorManager")]
-public class SkyboxEditorManager : ScriptableObject
+// [CreateAssetMenu(fileName = "SkyboxEditorManager", menuName = "Editor/SkyboxEditorManager")]
+public class SkyboxEditorSO : ScriptableObject
 {
     [HideInInspector] public Gradient previewGradient;
     [HideInInspector] public int previewTextureHeight = 30;
@@ -11,6 +11,11 @@ public class SkyboxEditorManager : ScriptableObject
     [HideInInspector] public FilterMode realFilterMode = FilterMode.Bilinear;
 
     [HideInInspector] public bool autoUpdate = false;
+    
+    public string skyboxName()
+    {
+        return name;
+    }
 
     
     // Reset gradient to unity default (almost)

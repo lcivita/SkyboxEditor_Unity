@@ -5,23 +5,26 @@ namespace Editor.SkyboxEditor.Scripts
 {
     public partial class SkyboxEditor
     {
-        private SkyboxEditorManager _manager;
+        private SkyboxEditorSO _so;
+        private SkyboxManager _manager;
         
-        private const string _skyboxMatPath = "Assets/Editor/SkyboxEditor/Shaders/CustomSkybox.mat";
+        private const string _skyboxMatPath = "Assets/Editor/SkyboxEditor/Materials/";
         private const string _skyboxShaderPath = "Assets/Editor/SkyboxEditor/Shaders/SkyboxProcedural.shader";
-        private string textureName = "SkyboxTex.png";
+        // private string textureName = "SkyboxTex.png";
         private string _skyboxTexPath()
         {
-            return "Assets/Editor/SkyboxEditor/Textures/" + textureName;
+            return "Assets/Editor/SkyboxEditor/Textures/" + _skyboxName + ".png";
         } 
 
         private void OnEnable()
         {
             LoadSettings();
             
+            _manager.CurSkyboxEditorSo = _so;
+            
             if (_gradient == null)
             {
-                _manager.InitializeGradient(out _gradient);
+                _so.InitializeGradient(out _gradient);
             }
             GenerateGradientTexture();
             
@@ -31,16 +34,27 @@ namespace Editor.SkyboxEditor.Scripts
 
         private void OnDisable()
         {
-            // save settings to project
-            _manager.previewGradient = _gradient;
-            _manager.previewTextureHeight = _previewTextureHeight;
-            _manager.previewFilterMode = _previewFilterMode;
+            _manager.CurSkyboxEditorSo = _so;
             
-            _manager.realTextureHeight = _realTextureHeight;
-            _manager.realFilterMode = _realFilterMode;
-            
-            EditorUtility.SetDirty(_manager);
-            AssetDatabase.SaveAssets();
+            try
+            {
+                // save settings to project
+                _so.previewGradient = _gradient;
+                _so.previewTextureHeight = _previewTextureHeight;
+                _so.previewFilterMode = _previewFilterMode;
+
+                _so.realTextureHeight = _realTextureHeight;
+                _so.realFilterMode = _realFilterMode;
+
+                // _manager.skyboxName = _skyboxName;
+
+                EditorUtility.SetDirty(_so);
+                AssetDatabase.SaveAssets();
+            }
+            catch
+            {
+                Debug.Log("Scriptable object was not set up");
+            }
         }
 
         private void OnDestroy()
@@ -52,26 +66,37 @@ namespace Editor.SkyboxEditor.Scripts
 
         private void LoadSettings()
         {
-            string settingsPath = "Assets/Editor/SkyboxEditor/SO/SkyboxEditorManager.asset";
-            _manager = AssetDatabase.LoadAssetAtPath<SkyboxEditorManager>(settingsPath);
-            
+            string managerPath = "Assets/Editor/SkyboxEditor/Manager/Manager.asset";
+            _manager = AssetDatabase.LoadAssetAtPath<SkyboxManager>(managerPath);
             if (_manager == null)
             {
-                _manager = CreateInstance<SkyboxEditorManager>();
-                AssetDatabase.CreateAsset(_manager, settingsPath);
+                _manager = CreateInstance<SkyboxManager>();
+                AssetDatabase.CreateAsset(_manager, managerPath);
                 AssetDatabase.SaveAssets();
             }
-            _gradient = _manager.previewGradient;
-            _previewTextureHeight = _manager.previewTextureHeight;
-            _previewFilterMode = _manager.previewFilterMode;
+            
+            string settingsPath = "Assets/Editor/SkyboxEditor/SO/" + _skyboxName + ".asset";
+            // _so = AssetDatabase.LoadAssetAtPath<SkyboxEditorSO>(settingsPath);
+            _so = _manager.CurSkyboxEditorSo;
+            if (_so == null)
+            {
+                _so = CreateInstance<SkyboxEditorSO>();
+                AssetDatabase.CreateAsset(_so, settingsPath);
+                AssetDatabase.SaveAssets();
+            }
+            _gradient = _so.previewGradient;
+            _previewTextureHeight = _so.previewTextureHeight;
+            _previewFilterMode = _so.previewFilterMode;
 
-            _realTextureHeight = _manager.realTextureHeight;
-            _realFilterMode = _manager.realFilterMode;
+            _realTextureHeight = _so.realTextureHeight;
+            _realFilterMode = _so.realFilterMode;
+
+            _skyboxName = _so.skyboxName();
         }
         
         private void SaveRealTexture()
         {
-            Texture2D curTex = AssetDatabase.LoadAssetAtPath<Texture2D>(_skyboxTexPath());
+            Texture2D curTex = AssetDatabase.LoadAssetAtPath<Texture2D>(_so.skyboxName());
 
             if (curTex != null)
             {

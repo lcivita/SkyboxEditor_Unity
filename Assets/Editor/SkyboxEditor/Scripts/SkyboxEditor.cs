@@ -1,10 +1,20 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+// using UnityEngine.Windows;
+using System.IO;
 
 namespace Editor.SkyboxEditor.Scripts
 {
     public partial class SkyboxEditor : EditorWindow
     {
+        private string _skyboxName = "default";
+        
+        private string _newSkyboxName = "";
+        
+        private SkyboxEditorSO _selectedSo;
+
+        
         private Gradient _gradient;
         private Texture2D _previewGradientTexture;
         private Vector2 _lastWindowSize = Vector2.zero;
@@ -18,7 +28,7 @@ namespace Editor.SkyboxEditor.Scripts
         private int _realTextureHeight = 100;
         private FilterMode _realFilterMode = FilterMode.Bilinear;
 
-        private bool _autoUpdate = false;
+        private bool _autoUpdate;
 
         [MenuItem("Tools/Skybox Editor")]
         private static void OpenSkyboxEditor()
@@ -28,80 +38,241 @@ namespace Editor.SkyboxEditor.Scripts
 
         private void OnGUI()
         {
-            // Only regenerate the gradient texture when window resized
-            if (_lastWindowSize.x != position.width || _lastWindowSize.y != position.height)
-            {
-                GenerateGradientTexture();
-                _lastWindowSize.x = position.width;
-                _lastWindowSize.y = position.height;
-            }
-            if (_previewGradientTexture != null)
-            {
-                DrawGradientBG();
-            }
             
-            EditorGUI.BeginChangeCheck();
-            _gradient = EditorGUILayout.GradientField("Skybox Gradient", _gradient);
+            HandleWindowResizing();
+            DrawPreviewSettings();
+            DrawRealSettings();
             
-            if (EditorGUI.EndChangeCheck())
-            {
-                GenerateGradientTexture();
-                if (_autoUpdate)
-                {
-                    UpdateSkybox();
-                }
-            }
-            
-            GUILayout.Space(20);
-            
-            EditorGUI.BeginChangeCheck();
-            GUIContent previewLabelContent = new GUIContent(" Preview Settings", _previewIcon);
-            GUILayout.Label(previewLabelContent);
-            _previewTextureHeight = EditorGUILayout.IntSlider("Resolution", _previewTextureHeight, 5, 100);
-            _previewFilterMode = (FilterMode)EditorGUILayout.EnumPopup("Filter Mode", _previewFilterMode);
-            if (EditorGUI.EndChangeCheck())
-            {
-                GenerateGradientTexture();
-            }
-            
-            EditorGUI.BeginChangeCheck();
-            GUILayout.Space(20);
-            GUIContent realLabelContent = new GUIContent(" Skybox Settings", _skyboxIcon);
-            GUILayout.Label(realLabelContent);
-            _realTextureHeight = EditorGUILayout.IntSlider("Resolution", _realTextureHeight, 5, 200);
-            _realFilterMode = (FilterMode)EditorGUILayout.EnumPopup("Filter Mode", _realFilterMode);
-            if (EditorGUI.EndChangeCheck())
-            {
-                GenerateGradientTexture();
-                if (_autoUpdate)
-                {
-                    UpdateSkybox();
-                }
-            }
-            
-
-            // push stuff beneath this to bottom of page
             GUILayout.FlexibleSpace();
+            DrawAutoUpdateToggle();
+            // DrawSkyboxName();
+            DrawLoadSkybox();
+            DrawNewSkybox();
+            DrawUpdateButton();
+            DrawResetButton();
+            DrawClearSkyboxes();
+        }
+        
+        #region GUI Methods
 
-            _autoUpdate = GUILayout.Toggle(_autoUpdate, "Auto-Update");
-            if (_autoUpdate) EditorGUILayout.HelpBox("Enabling auto-update may impact performance", MessageType.Warning);
-            
-            
-            if (GUILayout.Button("Update Skybox"))
+            private void HandleWindowResizing()
             {
-                UpdateSkybox();
-            }
-            
-            if (GUILayout.Button("Reset Gradient"))
-            {
-                _manager.InitializeGradient(out _gradient);
-                GenerateGradientTexture();
-                if (_autoUpdate)
+                // Only regenerate the gradient texture when window resized
+                if (_lastWindowSize.x != position.width || _lastWindowSize.y != position.height)
                 {
-                    UpdateSkybox();
+                    GenerateGradientTexture();
+                    _lastWindowSize.x = position.width;
+                    _lastWindowSize.y = position.height;
+                }
+                if (_previewGradientTexture != null)
+                {
+                    DrawGradientBG();
                 }
             }
-        }
+            
+            private void DrawGradientBG()
+            {
+                GUI.DrawTexture(new Rect(0, 0, position.width, position.height), _previewGradientTexture, ScaleMode.StretchToFill);
+            }
+
+            private void DrawPreviewSettings()
+            {
+                EditorGUI.BeginChangeCheck();
+                _gradient = EditorGUILayout.GradientField("Skybox Gradient", _gradient);
+
+                if (EditorGUI.EndChangeCheck())
+                {
+                    GenerateGradientTexture();
+                    if (_autoUpdate)
+                    {
+                        SetSkybox();
+                    }
+                }
+
+                GUILayout.Space(20);
+
+                EditorGUI.BeginChangeCheck();
+                GUIContent previewLabelContent = new GUIContent(" Preview Settings", _previewIcon);
+                GUILayout.Label(previewLabelContent);
+                _previewTextureHeight = EditorGUILayout.IntSlider("Resolution", _previewTextureHeight, 5, 100);
+                _previewFilterMode = (FilterMode)EditorGUILayout.EnumPopup("Filter Mode", _previewFilterMode);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    GenerateGradientTexture();
+                }
+            }
+
+            private void DrawRealSettings()
+            {
+                EditorGUI.BeginChangeCheck();
+                GUILayout.Space(20);
+                GUIContent realLabelContent = new GUIContent(" Skybox Settings", _skyboxIcon);
+                GUILayout.Label(realLabelContent);
+                _realTextureHeight = EditorGUILayout.IntSlider("Resolution", _realTextureHeight, 5, 200);
+                _realFilterMode = (FilterMode)EditorGUILayout.EnumPopup("Filter Mode", _realFilterMode);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    GenerateGradientTexture();
+                    if (_autoUpdate)
+                    {
+                        SetSkybox();
+                    }
+                }
+            }
+
+            private void DrawAutoUpdateToggle()
+            {
+                _autoUpdate = GUILayout.Toggle(_autoUpdate, "Auto-Update");
+                if (_autoUpdate) EditorGUILayout.HelpBox("Enabling auto-update may impact performance", MessageType.Warning);
+            }
+
+            private void DrawSkyboxName()
+            {
+                GUILayout.BeginHorizontal();
+                GUILayout.Label("Skybox Name", GUILayout.Width(150));
+                GUI.enabled = false;
+                _skyboxName = GUILayout.TextField(_skyboxName);
+                GUI.enabled = true;
+
+                // bool shouldEnable = !File.Exists("Assets/Editor/SkyboxEditor/SO/" + _skyboxName + ".asset");
+                // GUI.enabled = shouldEnable;
+                // if (GUILayout.Button("new skybox", GUILayout.Width(100)))
+                // {
+                //     CreateNewSkybox();
+                // }
+                //
+                // GUI.enabled = true;
+                //
+                GUILayout.EndHorizontal();
+                //
+                // if (_skyboxName == "")
+                // {
+                //     EditorGUILayout.HelpBox("You must assign a name (ID) for the skybox", MessageType.Warning);
+                // }
+            }
+
+            private void DrawNewSkybox()
+            {
+                GUILayout.BeginHorizontal();
+                _newSkyboxName = GUILayout.TextField(_newSkyboxName, GUILayout.Width(150));
+
+                bool shouldEnable = !(_newSkyboxName == "" || File.Exists("Assets/Editor/SkyboxEditor/SO/" + _newSkyboxName + ".asset"));
+                GUI.enabled = shouldEnable;
+                if (GUILayout.Button("New Skybox"))
+                {
+                    CreateNewSkybox(_newSkyboxName);
+                }
+
+                GUI.enabled = true;
+                
+                GUILayout.EndHorizontal();
+            }
+
+            private void DrawLoadSkybox()
+            {
+                GUILayout.BeginHorizontal();
+                GUILayout.Label("Load Skybox", GUILayout.Width(150));
+                SkyboxEditorSO prevSelectedSo = _selectedSo;
+                _manager.CurSkyboxEditorSo = EditorGUILayout.ObjectField(_manager.CurSkyboxEditorSo, typeof(SkyboxEditorSO), false) as SkyboxEditorSO;
+                
+                if (_manager.CurSkyboxEditorSo != null && _manager.CurSkyboxEditorSo != prevSelectedSo)
+                {
+                    OnManagerSelected(_manager.CurSkyboxEditorSo);
+                }
+                
+                GUILayout.EndHorizontal();
+            }
+            
+            private void OnManagerSelected(SkyboxEditorSO so)
+            {
+                // save settings to project
+                _so.previewGradient = _gradient;
+                _so.previewTextureHeight = _previewTextureHeight;
+                _so.previewFilterMode = _previewFilterMode;
+
+                _so.realTextureHeight = _realTextureHeight;
+                _so.realFilterMode = _realFilterMode;
+                
+                _manager.CurSkyboxEditorSo = so;
+
+                _so = so;
+                
+                _so.InitializeGradient(out _gradient);
+                
+                _skyboxName = _so.skyboxName();
+                
+                // _gradient = _so.previewGradient;
+                _previewTextureHeight = _so.previewTextureHeight;
+                _previewFilterMode = _so.previewFilterMode;
+
+                _realTextureHeight = _so.realTextureHeight;
+                _realFilterMode = _so.realFilterMode;
+                
+            }
+
+            private void DrawUpdateButton()
+            {
+                GUI.enabled = _manager.CurSkyboxEditorSo != null;
+                
+                if (GUILayout.Button("Set Skybox"))
+                {
+                    SetSkybox();
+                }
+
+                GUI.enabled = true;
+            }
+
+            private void DrawResetButton()
+            {
+                if (GUILayout.Button("Reset Gradient"))
+                {
+                    _so.InitializeGradient(out _gradient);
+                    GenerateGradientTexture();
+                    if (_autoUpdate)
+                    {
+                        SetSkybox();
+                    }
+                }
+            }
+
+            private void DrawClearSkyboxes()
+            {
+                if (GUILayout.Button("Clear All Skyboxes"))
+                {
+                    List<string> folderPaths =  new List<string>();
+                    // folderPaths.Add("Assets/Editor/SkyboxEditor/Manager");
+                    folderPaths.Add("Assets/Editor/SkyboxEditor/Materials");
+                    folderPaths.Add("Assets/Editor/SkyboxEditor/SO");
+                    folderPaths.Add("Assets/Editor/SkyboxEditor/Textures");
+
+                    foreach (var s in folderPaths)
+                    {
+                        DeleteAllFilesInFolder(s);
+                    }
+                    
+                    AssetDatabase.Refresh();
+
+                    _manager.CurSkyboxEditorSo = null;
+                }
+            }
+            
+            private void DeleteAllFilesInFolder(string path)
+            {
+                if (Directory.Exists(path))
+                {
+                    string[] files = Directory.GetFiles(path);
+                    foreach (string file in files)
+                    {
+                        File.Delete(file);
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning("Folder does not exist: " + path);
+                }
+            }
+
+        #endregion
         
         private void GenerateGradientTexture()
         {
@@ -120,22 +291,21 @@ namespace Editor.SkyboxEditor.Scripts
             _previewGradientTexture.filterMode = _previewFilterMode;
             _previewGradientTexture.Apply();
         }
-
-        private void DrawGradientBG()
-        {
-            GUI.DrawTexture(new Rect(0, 0, position.width, position.height), _previewGradientTexture, ScaleMode.StretchToFill);
-        }
         
-        // ReSharper disable Unity.PerformanceAnalysis
-        private void UpdateSkybox()
+        private void SetSkybox()
         {
+            if (_skyboxName == "")
+            {
+                return;
+            }
             SaveRealTexture();
-            
-            Material mat = AssetDatabase.LoadAssetAtPath<Material>(_skyboxMatPath);
+
+            string path = _skyboxMatPath + _manager.CurSkyboxEditorSo.skyboxName() + ".mat";
+            Material mat = AssetDatabase.LoadAssetAtPath<Material>(path);
             if (mat == null)
             {
                 mat = new Material(AssetDatabase.LoadAssetAtPath<Shader>(_skyboxShaderPath));
-                AssetDatabase.CreateAsset(mat, _skyboxMatPath);
+                AssetDatabase.CreateAsset(mat, path);
                 AssetDatabase.SaveAssets();
             }
 
@@ -163,6 +333,32 @@ namespace Editor.SkyboxEditor.Scripts
             tex.filterMode = _realFilterMode;
             tex.Apply();
             return tex;
+        }
+
+        private void CreateNewSkybox(string name)
+        {
+            string settingsPath = "Assets/Editor/SkyboxEditor/SO/" + name + ".asset";
+            _so = AssetDatabase.LoadAssetAtPath<SkyboxEditorSO>(settingsPath);
+            
+            if (_so == null)
+            {
+                _so = CreateInstance<SkyboxEditorSO>();
+                AssetDatabase.CreateAsset(_so, settingsPath);
+                AssetDatabase.SaveAssets();
+            }
+
+            _manager.CurSkyboxEditorSo = _so;
+            
+            _so.previewGradient = _gradient;
+            _so.previewTextureHeight = _previewTextureHeight;
+            _so.previewFilterMode = _previewFilterMode;
+
+            _so.realTextureHeight = _realTextureHeight;
+            _so.realFilterMode = _realFilterMode;
+            
+            SetSkybox();
+
+            // _skyboxName = _manager.skyboxName();
         }
     }
 }
