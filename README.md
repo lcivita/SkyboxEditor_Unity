@@ -23,7 +23,7 @@ I am planning on implementing:
 - Stars
 - Clouds
 
-Let me know what else you all would like to see! No guarantees that I will get to all of the features.
+Let me know what else you all would like to see!
 
 Feel free to use this in your projects! No attribution required.
 
