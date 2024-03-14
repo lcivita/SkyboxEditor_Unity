@@ -24,7 +24,7 @@ namespace Editor.SkyboxEditor.Scripts
             
             if (_gradient == null)
             {
-                _so.InitializeGradient(out _gradient);
+                _manager.InitializeGradient(out _gradient);
             }
             GenerateGradientTexture();
             
@@ -39,7 +39,10 @@ namespace Editor.SkyboxEditor.Scripts
             try
             {
                 // save settings to project
-                _so.previewGradient = _gradient;
+                Gradient newGradient = new Gradient();
+                newGradient.colorKeys = _gradient.colorKeys;
+                newGradient.alphaKeys = _gradient.alphaKeys;
+                _so.previewGradient = newGradient;
                 _so.previewTextureHeight = _previewTextureHeight;
                 _so.previewFilterMode = _previewFilterMode;
 

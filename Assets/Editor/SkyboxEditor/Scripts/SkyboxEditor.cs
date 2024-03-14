@@ -79,6 +79,8 @@ namespace Editor.SkyboxEditor.Scripts
             {
                 EditorGUI.BeginChangeCheck();
                 _gradient = EditorGUILayout.GradientField("Skybox Gradient", _gradient);
+                _manager.CurSkyboxEditorSo.previewGradient.alphaKeys = _gradient.alphaKeys;
+                _manager.CurSkyboxEditorSo.previewGradient.colorKeys = _gradient.colorKeys;
 
                 if (EditorGUI.EndChangeCheck())
                 {
@@ -150,8 +152,10 @@ namespace Editor.SkyboxEditor.Scripts
                 SkyboxEditorSO prevSelectedSo = _selectedSo;
                 _manager.CurSkyboxEditorSo = EditorGUILayout.ObjectField(_manager.CurSkyboxEditorSo, typeof(SkyboxEditorSO), false) as SkyboxEditorSO;
                 
-                if (_manager.CurSkyboxEditorSo != null && _manager.CurSkyboxEditorSo != prevSelectedSo)
+                if (_manager.CurSkyboxEditorSo != prevSelectedSo)
                 {
+                    _selectedSo = _manager.CurSkyboxEditorSo;
+                    if (_manager.CurSkyboxEditorSo != null)
                     OnManagerSelected(_manager.CurSkyboxEditorSo);
                 }
                 
@@ -160,23 +164,13 @@ namespace Editor.SkyboxEditor.Scripts
             
             private void OnManagerSelected(SkyboxEditorSO so)
             {
-                // save settings to project
-                _so.previewGradient = _gradient;
-                _so.previewTextureHeight = _previewTextureHeight;
-                _so.previewFilterMode = _previewFilterMode;
-
-                _so.realTextureHeight = _realTextureHeight;
-                _so.realFilterMode = _realFilterMode;
-                
                 _manager.CurSkyboxEditorSo = so;
 
                 _so = so;
                 
-                _so.InitializeGradient(out _gradient);
-                
                 _skyboxName = _so.skyboxName();
                 
-                // _gradient = _so.previewGradient;
+                _gradient = _so.previewGradient;
                 _previewTextureHeight = _so.previewTextureHeight;
                 _previewFilterMode = _so.previewFilterMode;
 
@@ -201,7 +195,7 @@ namespace Editor.SkyboxEditor.Scripts
             {
                 if (GUILayout.Button("Reset Gradient"))
                 {
-                    _so.InitializeGradient(out _gradient);
+                    _manager.InitializeGradient(out _gradient);
                     GenerateGradientTexture();
                     if (_autoUpdate)
                     {
@@ -230,8 +224,8 @@ namespace Editor.SkyboxEditor.Scripts
                         }
                     
                         AssetDatabase.Refresh();
-
-                        _manager.CurSkyboxEditorSo = null;
+                        _newSkyboxName = "default";
+                        CreateNewSkybox(_newSkyboxName);
                     }
                     
                 }
@@ -271,6 +265,7 @@ namespace Editor.SkyboxEditor.Scripts
 
             _previewGradientTexture.filterMode = _previewFilterMode;
             _previewGradientTexture.Apply();
+            
         }
         
         private void SetSkybox()
@@ -330,14 +325,19 @@ namespace Editor.SkyboxEditor.Scripts
 
             _manager.CurSkyboxEditorSo = _so;
             
-            _so.previewGradient = _gradient;
+            _manager.InitializeGradient(out _gradient);
+            
+            Gradient newGradient = new Gradient();
+            newGradient.colorKeys = _gradient.colorKeys;
+            newGradient.alphaKeys = _gradient.alphaKeys;
+            _so.previewGradient = newGradient;
             _so.previewTextureHeight = _previewTextureHeight;
             _so.previewFilterMode = _previewFilterMode;
 
             _so.realTextureHeight = _realTextureHeight;
             _so.realFilterMode = _realFilterMode;
             
-            SetSkybox();
+            // SetSkybox();
 
             // _skyboxName = _manager.skyboxName();
         }
