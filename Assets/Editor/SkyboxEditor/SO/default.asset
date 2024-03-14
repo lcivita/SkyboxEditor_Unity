@@ -42,8 +42,8 @@ MonoBehaviour:
     m_ColorSpace: -1
     m_NumColorKeys: 3
     m_NumAlphaKeys: 2
-  previewTextureHeight: 13
+  previewTextureHeight: 30
   previewFilterMode: 0
-  realTextureHeight: 110
+  realTextureHeight: 100
   realFilterMode: 1
   autoUpdate: 0

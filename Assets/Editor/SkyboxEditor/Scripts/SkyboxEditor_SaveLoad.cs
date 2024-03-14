@@ -26,6 +26,12 @@ namespace Editor.SkyboxEditor.Scripts
             {
                 _manager.InitializeGradient(out _gradient);
             }
+            
+            Gradient newGradient = new Gradient();
+            newGradient.colorKeys = _gradient.colorKeys;
+            newGradient.alphaKeys = _gradient.alphaKeys;
+            _manager.CurSkyboxEditorSo.previewGradient = newGradient;
+            
             GenerateGradientTexture();
             
             _previewIcon = (Texture2D)AssetDatabase.LoadAssetAtPath("Assets/Editor/SkyboxEditor/Icons/previewIcon.png", typeof(Texture2D));
