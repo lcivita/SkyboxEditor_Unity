@@ -5,7 +5,8 @@ Hey there! This is a super straightforward and minimalistic skybox editor for Un
 I will be uploading this to itch.io and the Unity Asset Store briefly  
 (if this line is still here, it means either I've forgotten to do this, or I have not yet gotten around to it)
 
-Download the file [here](https://github.com/lcivita99/SkyboxEditor_Unity/raw/main/Downloads/Alpha/SkyboxEditor_Alpha.unitypackage)
+## Downloads
+v1 s[Alpha](https://github.com/lcivita99/SkyboxEditor_Unity/raw/main/Downloads/Alpha/SkyboxEditor_Alpha.unitypackage)
 
 ## Instructions
 
