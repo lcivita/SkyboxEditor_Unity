@@ -177,6 +177,9 @@ namespace Editor.SkyboxEditor.Scripts
                 _realTextureHeight = _so.realTextureHeight;
                 _realFilterMode = _so.realFilterMode;
                 
+                // DrawGradientBG();
+                // _previewGradientTexture = ;
+                GenerateGradientTexture();
             }
 
             private void DrawUpdateButton()
