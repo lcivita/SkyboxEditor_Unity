@@ -8,12 +8,12 @@ namespace Editor.SkyboxEditor.Scripts
         private SkyboxEditorSO _so;
         private SkyboxManager _manager;
         
-        private const string _skyboxMatPath = "Assets/Editor/SkyboxEditor/Materials/";
-        private const string _skyboxShaderPath = "Assets/Editor/SkyboxEditor/Shaders/SkyboxProcedural.shader";
+        private const string _skyboxMatPath = "Assets/SkyboxEditor/Editor/Materials/";
+        private const string _skyboxShaderPath = "Assets/SkyboxEditor/Editor/Shaders/SkyboxProcedural.shader";
         // private string textureName = "SkyboxTex.png";
         private string _skyboxTexPath()
         {
-            return "Assets/Editor/SkyboxEditor/Textures/" + _skyboxName + ".png";
+            return "Assets/SkyboxEditor/Editor/Textures/" + _skyboxName + ".png";
         } 
 
         private void OnEnable()
@@ -34,8 +34,8 @@ namespace Editor.SkyboxEditor.Scripts
             
             GenerateGradientTexture();
             
-            _previewIcon = (Texture2D)AssetDatabase.LoadAssetAtPath("Assets/Editor/SkyboxEditor/Icons/previewIcon.png", typeof(Texture2D));
-            _skyboxIcon = (Texture2D)AssetDatabase.LoadAssetAtPath("Assets/Editor/SkyboxEditor/Icons/skyboxIcon.png", typeof(Texture2D));
+            _previewIcon = (Texture2D)AssetDatabase.LoadAssetAtPath("Assets/SkyboxEditor/Editor/Icons/previewIcon.png", typeof(Texture2D));
+            _skyboxIcon = (Texture2D)AssetDatabase.LoadAssetAtPath("Assets/SkyboxEditor/Editor/Icons/skyboxIcon.png", typeof(Texture2D));
         }
 
         private void OnDisable()
@@ -75,7 +75,7 @@ namespace Editor.SkyboxEditor.Scripts
 
         private void LoadSettings()
         {
-            string managerPath = "Assets/Editor/SkyboxEditor/Manager/Manager.asset";
+            string managerPath = "Assets/SkyboxEditor/Editor/Manager/Manager.asset";
             _manager = AssetDatabase.LoadAssetAtPath<SkyboxManager>(managerPath);
             if (_manager == null)
             {
@@ -84,7 +84,7 @@ namespace Editor.SkyboxEditor.Scripts
                 AssetDatabase.SaveAssets();
             }
             
-            string settingsPath = "Assets/Editor/SkyboxEditor/SO/" + _skyboxName + ".asset";
+            string settingsPath = "Assets/SkyboxEditor/Editor/SO/" + _skyboxName + ".asset";
             // _so = AssetDatabase.LoadAssetAtPath<SkyboxEditorSO>(settingsPath);
             _so = _manager.CurSkyboxEditorSo;
             if (_so == null)

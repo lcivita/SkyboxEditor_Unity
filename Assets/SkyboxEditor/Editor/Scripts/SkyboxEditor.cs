@@ -133,7 +133,7 @@ namespace Editor.SkyboxEditor.Scripts
                 GUILayout.BeginHorizontal();
                 _newSkyboxName = GUILayout.TextField(_newSkyboxName, GUILayout.Width(150));
 
-                bool shouldEnable = !(_newSkyboxName == "" || File.Exists("Assets/Editor/SkyboxEditor/SO/" + _newSkyboxName + ".asset"));
+                bool shouldEnable = !(_newSkyboxName == "" || File.Exists("Assets/SkyboxEditor/Editor/SO/" + _newSkyboxName + ".asset"));
                 GUI.enabled = shouldEnable;
                 if (GUILayout.Button("New Skybox"))
                 {
@@ -216,10 +216,10 @@ namespace Editor.SkyboxEditor.Scripts
                     if (!confirmed)
                     {
                         List<string> folderPaths =  new List<string>();
-                        // folderPaths.Add("Assets/Editor/SkyboxEditor/Manager");
-                        folderPaths.Add("Assets/Editor/SkyboxEditor/Materials");
-                        folderPaths.Add("Assets/Editor/SkyboxEditor/SO");
-                        folderPaths.Add("Assets/Editor/SkyboxEditor/Textures");
+                        // folderPaths.Add("Assets/SkyboxEditor/Editor/Manager");
+                        folderPaths.Add("Assets/SkyboxEditor/Editor/Materials");
+                        folderPaths.Add("Assets/SkyboxEditor/Editor/SO");
+                        folderPaths.Add("Assets/SkyboxEditor/Editor/Textures");
 
                         foreach (var s in folderPaths)
                         {
@@ -316,7 +316,7 @@ namespace Editor.SkyboxEditor.Scripts
 
         private void CreateNewSkybox(string name)
         {
-            string settingsPath = "Assets/Editor/SkyboxEditor/SO/" + name + ".asset";
+            string settingsPath = "Assets/SkyboxEditor/Editor/SO/" + name + ".asset";
             _so = AssetDatabase.LoadAssetAtPath<SkyboxEditorSO>(settingsPath);
             
             if (_so == null)
