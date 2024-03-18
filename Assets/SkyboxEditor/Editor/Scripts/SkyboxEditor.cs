@@ -4,7 +4,7 @@ using UnityEditor;
 // using UnityEngine.Windows;
 using System.IO;
 
-namespace Editor.SkyboxEditor.Scripts
+namespace SkyboxEditor.Scripts
 {
     public partial class SkyboxEditor : EditorWindow
     {
